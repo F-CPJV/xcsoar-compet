@@ -100,6 +100,20 @@ object SoaringSpot {
         return out.values.toList()
     }
 
+    private val DATE_RANGE =
+        Regex("""(\d{1,2} [A-Za-zéûà]+ \d{4}) *[\u2013-] *(\d{1,2} [A-Za-zéûà]+ \d{4})""")
+
+    /**
+     * Dates de la compétition, telles qu'affichées en tête de page. Utile pour
+     * distinguer « aucune task » d'une épreuve simplement à venir.
+     */
+    fun competitionDates(slug: String): Pair<String, String>? {
+        val flat = Html.flat(
+            fetchText("$BASE/en_gb/$slug/").replace(Regex("<script.*?</script>", DOTALL), " ")
+        )
+        return DATE_RANGE.find(flat)?.let { it.groupValues[1] to it.groupValues[2] }
+    }
+
     /** Toutes les tasks publiées, toutes classes confondues. */
     fun listTasks(slug: String): List<TaskRef> {
         val html = fetchText("$BASE/en_gb/$slug/results")

@@ -55,6 +55,7 @@ class LiveSurveyTest {
         val airspaceMisses = ArrayList<String>()
         val gasFailures = ArrayList<String>()
         var gasUsed = 0
+        var upcoming = 0
 
         line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
         line("|---|---|---|---|---|---|---|---|")
@@ -67,7 +68,11 @@ class LiveSurveyTest {
                 continue
             }
             if (refs.isEmpty()) {
-                line("| $slug | — | — | — | — | aucune task publiée | | |")
+                val dates = try { SoaringSpot.competitionDates(slug) } catch (e: Exception) { null }
+                val when_ = dates?.let { "épreuve à venir (${it.first} → ${it.second})" }
+                    ?: "aucune task publiée"
+                line("| $slug | — | — | — | — | $when_ | | |")
+                upcoming++
                 continue
             }
 
@@ -156,6 +161,7 @@ class LiveSurveyTest {
 
         line("")
         line("## Synthèse")
+        line("- compétitions non encore commencées (donc sans task) : $upcoming")
         line("- tasks analysées : $tasks, circuits générés : $built, dont AAT : $aat")
         line("- circuits résolus grâce au repli GlideAndSeek : $gasUsed ; échecs du repli : ${gasFailures.size} ${gasFailures.take(4)}")
         line("- compétitions sans fichier de points de virage : ${noWaypointFile.size} ${noWaypointFile}")

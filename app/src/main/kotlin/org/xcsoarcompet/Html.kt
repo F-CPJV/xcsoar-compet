@@ -39,6 +39,11 @@ object Html {
     fun text(s: String): String =
         unescape(TAG.replace(s, "")).replace(' ', ' ').trim()
 
+    /** Balises remplacées par une espace, blancs réduits : pour chercher une
+     *  expression qui traverse plusieurs éléments. */
+    fun flat(s: String): String =
+        unescape(TAG.replace(s, " ")).replace(' ', ' ').replace(Regex("\\s+"), " ").trim()
+
     /** Idem, mais chaque balise devient un saut de ligne (pour les blocs de notes). */
     fun lines(s: String): String =
         unescape(TAG.replace(s, "\n")).replace(' ', ' ')
