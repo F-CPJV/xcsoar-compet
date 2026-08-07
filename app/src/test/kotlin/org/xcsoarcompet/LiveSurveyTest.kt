@@ -117,7 +117,7 @@ class LiveSurveyTest {
             for (ref in refs.groupBy { it.cls }.map { it.value.last() }) {
                 tasks++
                 val parsed = try {
-                    SoaringSpot.parseTask(SoaringSpot.fetchText(SoaringSpot.taskUrl(slug, ref)))
+                    SoaringSpot.loadTask(slug, ref)
                 } catch (e: Exception) {
                     line("| $slug | ${ref.cls} | ${ref.number} | — | — | ❌ ${e.message} | | |")
                     continue

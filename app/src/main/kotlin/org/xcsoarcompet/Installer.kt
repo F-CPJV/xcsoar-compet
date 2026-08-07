@@ -32,8 +32,7 @@ class Installer(
         var ok = true
         var airspaceInstalled: String? = null
         var waypointsInstalled: String? = null
-        val page = SoaringSpot.fetchText(SoaringSpot.taskUrl(slug, task))
-        val parsed = SoaringSpot.parseTask(page)
+        val parsed = SoaringSpot.loadTask(slug, task)
         val kind = if (parsed.isAat) {
             val m = parsed.aatSeconds!! / 60
             "AAT ${m / 60}h${String.format("%02d", m % 60)}"

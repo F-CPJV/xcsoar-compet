@@ -42,7 +42,31 @@ object SoaringSpot {
 
     private val DOTALL = setOf(RegexOption.DOT_MATCHES_ALL)
 
+    class HttpException(val code: Int, url: String) :
+        java.io.IOException("HTTP $code sur $url")
+
+    /**
+     * Trois tentatives : au briefing, un aléa réseau ne doit pas laisser le
+     * pilote sans circuit. On ne réessaie pas une erreur 4xx, qui ne changera
+     * pas d'avis.
+     */
     fun fetch(url: String): ByteArray {
+        var last: java.io.IOException? = null
+        for (attempt in 0 until 3) {
+            try {
+                return fetchOnce(url)
+            } catch (e: HttpException) {
+                if (e.code in 400..499) throw e
+                last = e
+            } catch (e: java.io.IOException) {
+                last = e
+            }
+            Thread.sleep(1000L * (attempt + 1))
+        }
+        throw last!!
+    }
+
+    private fun fetchOnce(url: String): ByteArray {
         val conn = URL(url).openConnection() as HttpURLConnection
         conn.connectTimeout = 20_000
         conn.readTimeout = 60_000
@@ -50,7 +74,7 @@ object SoaringSpot {
         conn.instanceFollowRedirects = true
         try {
             if (conn.responseCode !in 200..299)
-                throw java.io.IOException("HTTP ${conn.responseCode} sur $url")
+                throw HttpException(conn.responseCode, url)
             return conn.inputStream.readBytes()
         } finally {
             conn.disconnect()
@@ -126,6 +150,27 @@ object SoaringSpot {
             .distinct()
             .sortedWith(compareBy({ it.cls }, { it.number }))
             .toList()
+    }
+
+    /**
+     * Charge et analyse la page d'une task, avec reprises.
+     *
+     * SoaringSpot a servi une fois, en HTTP 200, une page amputée de son
+     * tableau de points de virage (relevé sur trogar-2-2026 / open / task 6,
+     * non reproductible ensuite). Une page incomplète ne doit pas se solder par
+     * un échec définitif.
+     */
+    fun loadTask(slug: String, ref: TaskRef, attempts: Int = 3): Task {
+        var last: Exception? = null
+        for (attempt in 0 until attempts) {
+            try {
+                return parseTask(fetchText(taskUrl(slug, ref)))
+            } catch (e: Exception) {
+                last = e
+                if (attempt < attempts - 1) Thread.sleep(1500L * (attempt + 1))
+            }
+        }
+        throw last!!
     }
 
     fun taskUrl(slug: String, t: TaskRef) =
