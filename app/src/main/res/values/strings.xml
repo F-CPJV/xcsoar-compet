@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">XCSoar Compet</string>
+
+    <string name="grant_storage">Grant file access</string>
+    <string name="need_storage">All-files access is required to write into the XCSoar folder.</string>
+
+    <string name="target_label">XCSoar folder</string>
+    <string name="no_target">no XCSoar folder found</string>
+    <string name="no_target_help">No XCSoar folder found under Android/media. Tap for help.</string>
+    <string name="target_unused_warning">Warning: XCSoar has never written here (no xcsoar.log). It is probably still using its private folder and will ignore these files. Tap for help.</string>
+
+    <string name="competition_label">Competition</string>
+    <string name="competition_hint">Name, place or year — or a SoaringSpot URL</string>
+    <string name="load_tasks">Load tasks</string>
+    <string name="task_label">Task</string>
+
+    <string name="opt_task">Task (compet_task.tsk)</string>
+    <string name="opt_default">Also as Default.tsk (loaded at startup)</string>
+    <string name="opt_waypoints">Waypoints (.cup)</string>
+    <string name="opt_airspace">Airspace, inactive ones removed</string>
+    <string name="opt_profile">Point the profile at the airspace file</string>
+
+    <string name="install">Download and install</string>
+    <string name="restart_hint">Restart XCSoar to load the task.</string>
+    <string name="search">Search</string>
+    <string name="pick_competition">Pick a competition</string>
+</resources>

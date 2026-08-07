@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">XCSoar Compét</string>
+    <string name="grant_storage">Autoriser l\'accès aux fichiers</string>
+    <string name="need_storage">L\'accès à tous les fichiers est nécessaire pour écrire dans le répertoire de XCSoar.</string>
+
+    <string name="target_label">Répertoire XCSoar</string>
+    <string name="no_target">aucun répertoire XCSoar trouvé</string>
+    <string name="no_target_help">Aucun répertoire XCSoar sous Android/media. Toucher pour l\'explication.</string>
+    <string name="target_unused_warning">Attention : XCSoar n\'a jamais écrit ici (pas de xcsoar.log). Il utilise probablement son répertoire privé et ignorera ces fichiers. Toucher pour l\'explication.</string>
+
+    <string name="competition_label">Compétition</string>
+    <string name="competition_hint">Nom, lieu ou année — ou une URL SoaringSpot</string>
+    <string name="load_tasks">Charger les circuits</string>
+    <string name="task_label">Circuit</string>
+
+    <string name="opt_task">Circuit (compet_task.tsk)</string>
+    <string name="opt_default">Aussi en Default.tsk (chargé au démarrage)</string>
+    <string name="opt_waypoints">Points de virage (.cup)</string>
+    <string name="opt_airspace">Espaces aériens, désactivés retirés</string>
+    <string name="opt_profile">Faire pointer le profil sur ce fichier d\'espaces</string>
+
+    <string name="install">Télécharger et installer</string>
+    <string name="restart_hint">Redémarrer XCSoar pour charger le circuit.</string>
+    <string name="search">Rechercher</string>
+    <string name="pick_competition">Choisir une compétition</string>
+</resources>
