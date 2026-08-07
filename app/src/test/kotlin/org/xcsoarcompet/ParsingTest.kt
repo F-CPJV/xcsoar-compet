@@ -104,8 +104,9 @@ class ParsingTest {
             TaskXml.observationZone("Line 10.00 km (Radius 5.00 km)"))
         assertEquals("<ObservationZone radius=\"3000\" type=\"Cylinder\"/>",
             TaskXml.observationZone("Cylinder R=3.00 km"))
+        // 90° / 20 km / cylindre 500 m : c'est exactement le BGA Fixed Course
         assertEquals(
-            "<ObservationZone angle=\"90\" radius=\"20000\" inner_radius=\"500\" type=\"CustomKeyhole\"/>",
+            "<ObservationZone type=\"BGAFixedCourse\"/>",
             TaskXml.observationZone(
                 "enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=20.00 km, " +
                     "Angle=90.0°, Cylinder R=0.50 km"
@@ -395,5 +396,30 @@ class ParsingTest {
         assertNull(r.startMaxSpeed)
         assertNull(r.finishMinHeight)
         assertNull(r.startMaxHeight)
+    }
+
+    @Test
+    fun `zones nommees de XCSoar reconnues`() {
+        // 90° / 10 km / cylindre 500 m : trou de serrure DAeC
+        assertEquals("<ObservationZone type=\"Keyhole\"/>", TaskXml.observationZone(
+            "symmetric, Rmin=0.50 km, Rmax=10.00 km, Angle=90.0°, Cylinder R=0.50 km"))
+        // 180° / 10 km / cylindre 500 m : BGA Enhanced Option
+        assertEquals("<ObservationZone type=\"BGAEnhancedOption\"/>", TaskXml.observationZone(
+            "symmetric, Rmin=0.50 km, Rmax=10.00 km, Angle=180.0°, Cylinder R=0.50 km"))
+    }
+
+    @Test
+    fun `geometrie non standard reste un CustomKeyhole`() {
+        // relevé en compétition : 180° / 10 km mais cylindre de 5 km — la zone
+        // nommée imposerait 500 m et changerait la zone à l'insu du pilote
+        assertEquals(
+            "<ObservationZone angle=\"180\" radius=\"10000\" inner_radius=\"5000\" type=\"CustomKeyhole\"/>",
+            TaskXml.observationZone(
+                "symmetric, Rmin=5.00 km, Rmax=10.00 km, Angle=180.0°, Cylinder R=5.00 km"))
+        // 90° / 5 km : aucune zone nommée ne correspond
+        assertEquals(
+            "<ObservationZone angle=\"90\" radius=\"5000\" inner_radius=\"500\" type=\"CustomKeyhole\"/>",
+            TaskXml.observationZone(
+                "symmetric, Rmin=0.50 km, Rmax=5.00 km, Angle=90.0°, Cylinder R=0.50 km"))
     }
 }

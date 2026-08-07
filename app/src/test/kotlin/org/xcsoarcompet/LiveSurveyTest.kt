@@ -56,6 +56,7 @@ class LiveSurveyTest {
         val gasFailures = ArrayList<String>()
         var gasUsed = 0
         var upcoming = 0
+        val allZones = LinkedHashMap<String, Int>()
 
         line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
         line("|---|---|---|---|---|---|---|---|")
@@ -101,6 +102,10 @@ class LiveSurveyTest {
 
                 parsed.points.filter { !TaskXml.isKnownZone(it.zone) }.forEach {
                     unknownZones[it.zone] = (unknownZones[it.zone] ?: 0) + 1
+                }
+                parsed.points.forEach { tp ->
+                    val key = tp.zone + "  →  " + TaskXml.observationZone(tp.zone)
+                    allZones[key] = (allZones[key] ?: 0) + 1
                 }
 
                 val rules = TaskXml.parseRules(parsed.notes)
@@ -171,6 +176,12 @@ class LiveSurveyTest {
         missingPoints.take(8).forEach { line("  - $it") }
         line("- espaces inactifs introuvables : ${airspaceMisses.size}")
         airspaceMisses.take(8).forEach { line("  - $it") }
+        line("")
+        line("## Zones d'observation rencontrées")
+        allZones.entries.sortedByDescending { it.value }.forEach {
+            line("- ${it.value}× `${it.key}`")
+        }
+        line("")
         line("- zones d'observation non reconnues : ${unknownZones.size}")
         unknownZones.entries.take(10).forEach { line("  - ${it.value}× « ${it.key} »") }
 

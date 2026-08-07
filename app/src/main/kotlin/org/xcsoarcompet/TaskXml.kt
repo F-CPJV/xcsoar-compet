@@ -78,6 +78,19 @@ object TaskXml {
                 ?.groupValues?.get(1)?.toDoubleOrNull() ?: 90.0
             if (angle >= 360.0)
                 return """<ObservationZone radius="$rmax" type="Cylinder"/>"""
+
+            // Zones nommées de XCSoar (KeyholeZone.hpp) : géométrie figée, avec
+            // un cylindre intérieur de 500 m. On ne les émet que si les trois
+            // paramètres publiés correspondent exactement, sinon leur valeur
+            // codée en dur remplacerait silencieusement celle de l'organisateur.
+            val named = when {
+                angle == 90.0 && rmax == 10000 && rmin == 500 -> "Keyhole"
+                angle == 90.0 && rmax == 20000 && rmin == 500 -> "BGAFixedCourse"
+                angle == 180.0 && rmax == 10000 && rmin == 500 -> "BGAEnhancedOption"
+                else -> null
+            }
+            if (named != null) return """<ObservationZone type="$named"/>"""
+
             val a = if (angle == Math.floor(angle)) angle.toInt().toString()
             else angle.toString()
             return """<ObservationZone angle="$a" radius="$rmax" """ +

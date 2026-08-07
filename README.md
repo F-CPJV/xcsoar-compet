@@ -92,8 +92,13 @@ AAT type and its 2 h minimum time.
 - The page is parsed through its CSS classes (`task-duration`, `task-version`,
   `task-excluded-airspaces`, `table.task`), not the displayed text, which is
   translated and reworded.
-- A `360°` symmetric sector is written as a plain cylinder: that is what an
-  AAT area of that shape means to XCSoar.
+- Observation zones map to XCSoar's named zones when the published parameters
+  match them exactly — `90° / 20 km / 500 m` is a **BGA Fixed Course**,
+  `90° / 10 km / 500 m` a **DAeC Keyhole**, `180° / 10 km / 500 m` a **BGA
+  Enhanced Option**. Anything else stays a `CustomKeyhole`, which keeps the
+  organiser's own numbers: the named zones carry a hard-coded 500 m cylinder
+  and would silently replace a different one. A `360°` sector becomes a plain
+  cylinder, which is what an AAT area of that shape means.
 - Airspace names are matched in full, whitespace-normalised and case-folded.
   The activation suffixes (`(MON-FRI)`, `(MON-FRI HX)`) are part of the name,
   so `TMA LYON 3` is never removed when `TMA LYON 3 DES R3201B` is inactive.

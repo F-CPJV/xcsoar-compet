@@ -39,5 +39,29 @@
 - espaces inactifs introuvables : 2
   - 66th-ro-national-championship-2026-clubdouble-craiova-2026/club: [LOMOS (BUCHAREST CONTROL) 122.030 MHZ / ALTN 124.975 MHZ / ALTN, BACAU (BUCHAREST CONTROL) 128.610 MHZ / ALTN 125.725 MHZ, ARGES (BUCHAREST CONTROL) 121.285 MHZ / ALTN 124.975 MHZ / ALTN]
   - 66th-ro-national-championship-2026-clubdouble-craiova-2026/two-seater: [LOMOS (BUCHAREST CONTROL) 122.030 MHZ / ALTN 124.975 MHZ / ALTN, BACAU (BUCHAREST CONTROL) 128.610 MHZ / ALTN 125.725 MHZ, ARGES (BUCHAREST CONTROL) 121.285 MHZ / ALTN 124.975 MHZ / ALTN]
+
+## Zones d'observation rencontrées
+- 16× `enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=20.00 km, Angle=90.0°, Cylinder R=0.50 km  →  <ObservationZone type="BGAFixedCourse"/>`
+- 15× `Cylinder R=5.00 km  →  <ObservationZone radius="5000" type="Cylinder"/>`
+- 14× `Cylinder R=3.00 km  →  <ObservationZone radius="3000" type="Cylinder"/>`
+- 12× `Cylinder R=15.00 km  →  <ObservationZone radius="15000" type="Cylinder"/>`
+- 9× `Line 10.00 km (Radius 5.00 km)  →  <ObservationZone length="10000" type="Line"/>`
+- 9× `Line 20.00 km (Radius 10.00 km)  →  <ObservationZone length="20000" type="Line"/>`
+- 9× `enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=10.00 km, Angle=90.0°, Cylinder R=0.50 km  →  <ObservationZone type="Keyhole"/>`
+- 7× `Cylinder R=0.50 km  →  <ObservationZone radius="500" type="Cylinder"/>`
+- 6× `Cylinder R=10.00 km  →  <ObservationZone radius="10000" type="Cylinder"/>`
+- 6× `Cylinder R=25.00 km  →  <ObservationZone radius="25000" type="Cylinder"/>`
+- 6× `enum.label.result_status.symmetric, Rmin=5.00 km, Rmax=10.00 km, Angle=180.0°, Cylinder R=5.00 km  →  <ObservationZone angle="180" radius="10000" inner_radius="5000" type="CustomKeyhole"/>`
+- 5× `Cylinder R=20.00 km  →  <ObservationZone radius="20000" type="Cylinder"/>`
+- 3× `enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=5.00 km, Angle=90.0°, Cylinder R=0.50 km  →  <ObservationZone angle="90" radius="5000" inner_radius="500" type="CustomKeyhole"/>`
+- 3× `Cylinder R=35.00 km  →  <ObservationZone radius="35000" type="Cylinder"/>`
+- 3× `enum.label.result_status.next, R=5.00 km, Angle=90.0°  →  <ObservationZone radius="5000" type="Cylinder"/>`
+- 2× `Cylinder R=40.00 km  →  <ObservationZone radius="40000" type="Cylinder"/>`
+- 2× `Line 6.00 km (Radius 3.00 km)  →  <ObservationZone length="6000" type="Line"/>`
+- 1× `Cylinder R=7.00 km  →  <ObservationZone radius="7000" type="Cylinder"/>`
+- 1× `Cylinder R=55.00 km  →  <ObservationZone radius="55000" type="Cylinder"/>`
+- 1× `Cylinder R=18.00 km  →  <ObservationZone radius="18000" type="Cylinder"/>`
+- 1× `Cylinder R=30.00 km  →  <ObservationZone radius="30000" type="Cylinder"/>`
+
 - zones d'observation non reconnues : 1
   - 3× « enum.label.result_status.next, R=5.00 km, Angle=90.0° »
