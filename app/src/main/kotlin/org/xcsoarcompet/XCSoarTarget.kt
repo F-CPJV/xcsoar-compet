@@ -83,21 +83,17 @@ object XCSoarTarget {
     }
 
     /**
-     * Ajoute un fichier à une liste sans écraser ce que le pilote y a déjà mis
-     * — sa propre base de points de virage, typiquement.
-     */
-    fun addToList(current: String, fileName: String): String {
-        val entry = LOCAL + fileName
-        val entries = current.split('|').filter { it.isNotBlank() }
-        if (entries.contains(entry)) return current
-        return (entries + entry).joinToString("|")
-    }
-
-    /**
      * Espaces aériens et points de virage du jour dans le profil.
-     * Les espaces **remplacent** la liste : garder le fichier national du
-     * pilote y réintroduirait les zones que l'organisateur a désactivées.
-     * Les points de virage sont **ajoutés** à la liste existante.
+     *
+     * Les deux **remplacent** la liste existante, ils ne s'y ajoutent pas.
+     * Pour les espaces, garder le fichier national du pilote y réintroduirait
+     * les zones que l'organisateur a désactivées. Pour les points de virage,
+     * le fichier de l'organisateur fait référence pendant l'épreuve : y
+     * superposer la base personnelle du pilote ferait apparaître des points en
+     * double, aux coordonnées parfois légèrement différentes.
+     *
+     * La valeur précédente est rapportée pour que le pilote puisse la remettre
+     * après la compétition.
      */
     fun setProfileFiles(target: Target, airspace: String?, waypoints: String?): List<String> {
         val prf = target.profileFile
@@ -107,32 +103,25 @@ object XCSoarTarget {
         var text = prf.readText(Charsets.UTF_8)
         val messages = ArrayList<String>()
 
-        if (airspace != null) {
-            val found = readValue(text, listOf("AirspaceFileList", "AirspaceFile"))
-            val key = found?.first ?: "AirspaceFileList"
+        fun setFile(what: String, keys: List<String>, fileName: String) {
+            val found = readValue(text, keys)
+            val key = found?.first ?: keys.first()
             val previous = found?.second.orEmpty()
-            val wanted = LOCAL + airspace
+            val wanted = LOCAL + fileName
             if (previous == wanted) {
-                messages.add("profile: airspace already set")
-            } else {
-                if (previous.isNotBlank())
-                    messages.add("profile: previous airspace was $previous")
-                text = writeValue(text, key, wanted)
-                messages.add("profile: $key -> $airspace")
+                messages.add("profile: $what already set")
+                return
             }
+            if (previous.isNotBlank())
+                messages.add("profile: previous $what was $previous")
+            text = writeValue(text, key, wanted)
+            messages.add("profile: $key -> $fileName")
         }
 
-        if (waypoints != null) {
-            val found = readValue(text, listOf("WPFileList", "WPFile"))
-            val key = found?.first ?: "WPFileList"
-            val updated = addToList(found?.second.orEmpty(), waypoints)
-            if (updated == found?.second) {
-                messages.add("profile: waypoints already listed")
-            } else {
-                text = writeValue(text, key, updated)
-                messages.add("profile: $key += $waypoints")
-            }
-        }
+        if (airspace != null)
+            setFile("airspace", listOf("AirspaceFileList", "AirspaceFile"), airspace)
+        if (waypoints != null)
+            setFile("waypoints", listOf("WPFileList", "WPFile"), waypoints)
 
         prf.writeText(text, Charsets.UTF_8)
         return messages

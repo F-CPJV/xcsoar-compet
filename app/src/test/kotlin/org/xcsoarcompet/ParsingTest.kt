@@ -226,23 +226,8 @@ class ParsingTest {
         assertTrue(out.contains("WPFileList=\"a.cup\""))
     }
 
-    @Test
-    fun `waypoints ajoutes sans ecraser ceux du pilote`() {
-        val existing = "%LOCAL_PATH%\\FR.cup"
-        val out = XCSoarTarget.addToList(existing, "TP-CDF.cup")
-        assertEquals("%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF.cup", out)
-    }
 
-    @Test
-    fun `waypoints deja presents non dupliques`() {
-        val existing = "%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF.cup"
-        assertEquals(existing, XCSoarTarget.addToList(existing, "TP-CDF.cup"))
-    }
 
-    @Test
-    fun `liste vide donne une seule entree`() {
-        assertEquals("%LOCAL_PATH%\\TP.cup", XCSoarTarget.addToList("", "TP.cup"))
-    }
 
     @Test
     fun `lecture de cle avec repli sur l ancien nom`() {
@@ -271,9 +256,11 @@ class ParsingTest {
         assertFalse(out.contains("France-2026-04-16-AirSpace.txt"))
         assertTrue(messages.any { it.contains("previous airspace was") })
 
-        // les points de virage du pilote sont conservés, ceux de la compét ajoutés
+        // le fichier de l'organisateur devient la seule référence
         assertTrue(out.contains(
-            "WPFileList=\"%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF-Club-Villefranche-2026-v1.0.cup\""))
+            "WPFileList=\"%LOCAL_PATH%\\TP-CDF-Club-Villefranche-2026-v1.0.cup\""))
+        assertFalse(out.contains("FR.cup"))
+        assertTrue(messages.any { it.contains("previous waypoints was") })
 
         // le reste du profil est intact
         assertTrue(out.contains("MapFile=\"%LOCAL_PATH%\\FR.xcm\""))
