@@ -15,10 +15,15 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.view.WindowInsets
 import android.widget.*
 import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
+
+    private companion object {
+        const val PAD = 32
+    }
 
     private val io = Executors.newSingleThreadExecutor()
     private val ui = Handler(Looper.getMainLooper())
@@ -58,11 +63,37 @@ class MainActivity : Activity() {
 
     private fun pad(v: View) = v.apply { setPadding(0, 8, 0, 8) }
 
+    /**
+     * Depuis Android 15, une application ciblant le SDK 35 dessine
+     * obligatoirement sous les barres système. Sans cette marge, le premier
+     * élément — le bouton d'autorisation — se retrouve caché derrière la barre
+     * d'état, et l'utilisateur ne peut plus accorder l'accès aux fichiers.
+     */
+    private fun applySystemBarInsets(root: View) {
+        root.setOnApplyWindowInsetsListener { v, insets ->
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val bars = insets.getInsets(
+                    WindowInsets.Type.systemBars() or WindowInsets.Type.displayCutout()
+                )
+                v.setPadding(PAD + bars.left, PAD + bars.top, PAD + bars.right, PAD + bars.bottom)
+            } else {
+                @Suppress("DEPRECATION")
+                v.setPadding(
+                    PAD + insets.systemWindowInsetLeft, PAD + insets.systemWindowInsetTop,
+                    PAD + insets.systemWindowInsetRight, PAD + insets.systemWindowInsetBottom
+                )
+            }
+            insets
+        }
+        root.requestApplyInsets()
+    }
+
     private fun buildUi(): View {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(32, 32, 32, 32)
+            setPadding(PAD, PAD, PAD, PAD)
         }
+        applySystemBarInsets(root)
 
         storageButton = Button(this).apply {
             text = getString(R.string.grant_storage)
@@ -77,7 +108,10 @@ class MainActivity : Activity() {
             setTextColor(0xFFB00020.toInt())
             visibility = View.GONE
             setOnClickListener {
-                startActivity(
+                // tant que l'autorisation manque, l'avertissement mène au réglage,
+                // pas à la page d'aide : c'est l'action utile à ce moment-là
+                if (!hasAllFilesAccess()) requestAllFilesAccess()
+                else startActivity(
                     Intent(Intent.ACTION_VIEW, Uri.parse(XCSoarTarget.STORAGE_HELP_URL))
                 )
             }
