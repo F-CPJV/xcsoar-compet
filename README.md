@@ -55,11 +55,18 @@ The app detects this (no `xcsoar.log` in the media folder means XCSoar has
 never written there) and warns instead of pretending to succeed. Tap the
 warning for the migration options.
 
+## Installing
+
+Grab `app-release.apk` from the [latest release](https://github.com/F-CPJV/xcsoar-compet/releases/latest),
+or build it yourself. Android will ask you to allow installation from this
+source; the APK is signed with the project's own key.
+
 ## Building
 
 ```bash
 ./gradlew assembleDebug          # app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest      # parser tests
+./gradlew assembleRelease        # signed, needs keystore.properties (not in git)
 ```
 
 Requires JDK 17+ and an Android SDK with platform 35.
