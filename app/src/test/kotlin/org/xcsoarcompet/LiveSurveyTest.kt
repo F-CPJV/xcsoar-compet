@@ -82,6 +82,15 @@ class LiveSurveyTest {
         var upcoming = 0
         val allZones = LinkedHashMap<String, Pair<Int, String>>()
 
+        val stamp = java.time.LocalDateTime.now()
+            .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))
+        line("# Relevé sur compétitions réelles")
+        line("")
+        line("XCSoar Compét **${BuildConfig.VERSION_NAME}** — relevé du $stamp")
+        line("")
+        line("SoaringSpot publie au fil de l'eau : les chiffres changent d'un")
+        line("relevé à l'autre, une épreuve du jour pouvant apparaître entre deux.")
+        line("")
         line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
         line("|---|---|---|---|---|---|---|---|")
 

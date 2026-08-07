@@ -1,3 +1,10 @@
+# Relevé sur compétitions réelles
+
+XCSoar Compét **0.9** — relevé du 2026-08-07 17:19
+
+SoaringSpot publie au fil de l'eau : les chiffres changent d'un
+relevé à l'autre, une épreuve du jour pouvant apparaître entre deux.
+
 | compétition | classe | task | type | pts | circuit | règles | espaces inactifs |
 |---|---|---|---|---|---|---|---|
 | cdf2026-villefranche | club | 5 | RT | 6 | ✔ | VH | 12/12 |
@@ -42,25 +49,24 @@
 | 66th-ro-national-championship-2026-clubdouble-craiova-2026 | two-seater | 4 | AAT 120min | 5 | ✔ (GlideAndSeek) | — | 119/143 |
 | 2026-m-domo-zostauto-taure-paluknys-2026 | mix | 13 | AAT 150min | 5 | ✔ | — | — |
 | 2026-m-domo-zostauto-taure-paluknys-2026 | retro | 5 | RT | 6 | ✔ | — | — |
-| cempionat-mo-2026-klass-smesannyj-reshety | club | 7 | RT | 6 | ✔ | — | — |
+| cempionat-mo-2026-klass-smesannyj-reshety | club | 7 | RT | 6 | ✔ (GlideAndSeek) | — | — |
 | ccr-coppa-citta-di-rieti-rieti-2026 | — | — | — | — | épreuve à venir (18 August 2026 → 25 August 2026) | | |
-| grand-prix-club-la-cerdanya-2026-la-cerdanya-2026 | — | — | — | — | aucune task publiée | | |
-| 2026-canadian-national-gliding-competition-rockton-2026 | 18-meter-open-20-m | 5 | AAT 90min | 5 | ✔ (GlideAndSeek) | — | 18 listés, pas de fichier |
-| 2026-canadian-national-gliding-competition-rockton-2026 | club-a-handicapped | 5 | AAT 90min | 5 | ✔ (GlideAndSeek) | — | 18 listés, pas de fichier |
-| wcr2026 | club | 8 | AAT 120min | 4 | ✔ | — | 1/1 |
-| wcr2026 | open | 8 | AAT 150min | 6 | ✔ | — | 1/1 |
-| cempionat-rossii-2026-klass-otkrytyj-evsino | open | 4 | AAT 120min | 6 | ✔ (GlideAndSeek) | — | — |
-| copa-oeste-2025-raul-o-bavaud-trenque-lauquen-2025 | combinado | 4 | AAT 120min | 5 | ✔ | — | — |
+| grand-prix-club-la-cerdanya-2026-la-cerdanya-2026 | — | — | — | — | épreuve à venir (6 September 2026 → 12 September 2026) | | |
+| 2026-canadian-national-gliding-competition-rockton-2026 | — | — | — | — | épreuve à venir (27 July 2026 → 7 August 2026) | | |
+| wcr2026 | club | 8 | AAT 120min | 4 | ✔ (GlideAndSeek) | — | 1 listés, pas de fichier |
+| wcr2026 | open | 8 | AAT 150min | 6 | ✔ (GlideAndSeek) | — | 1 listés, pas de fichier |
+| cempionat-rossii-2026-klass-otkrytyj-evsino | open | 4 | AAT 120min | 6 | ✔ | — | — |
+| copa-oeste-2025-raul-o-bavaud-trenque-lauquen-2025 | combinado | 4 | AAT 120min | 5 | ✔ (GlideAndSeek) | — | — |
 | jwgc2026 | club | 5 | AAT 210min | 4 | ✔ | VH | 14/14 |
 | jwgc2026 | standard | 5 | RT | 5 | ✔ | VH | 14/14 |
 
 ## Synthèse
-- compétitions non encore commencées (donc sans task) : 4
-- tasks analysées : 49, circuits générés : 49, dont AAT : 28
-- circuits résolus grâce au repli GlideAndSeek : 5 ; échecs du repli : 0 []
-- compétitions sans fichier de points de virage : 1 [2026-canadian-national-gliding-competition-rockton-2026]
-- compétitions sans fichier d'espaces : 2 [2026-canadian-national-gliding-competition-rockton-2026, copa-oeste-2025-raul-o-bavaud-trenque-lauquen-2025]
-- règles du jour non trouvées : 31 [les-8-jours-de-fontainebleau-2026-moret-episy-2026/open, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/15-meter, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/18-meter, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/club, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/doppelsitzer, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/offene, cambridge-cloud-rally-2026-gransden-lodge-2026/funster, cambridge-cloud-rally-2026-gransden-lodge-2026/racer]
+- compétitions non encore commencées (donc sans task) : 5
+- tasks analysées : 47, circuits générés : 47, dont AAT : 26
+- circuits résolus grâce au repli GlideAndSeek : 6 ; échecs du repli : 0 []
+- compétitions sans fichier de points de virage : 1 [wcr2026]
+- compétitions sans fichier d'espaces : 2 [wcr2026, copa-oeste-2025-raul-o-bavaud-trenque-lauquen-2025]
+- règles du jour non trouvées : 29 [les-8-jours-de-fontainebleau-2026-moret-episy-2026/open, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/15-meter, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/18-meter, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/club, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/doppelsitzer, 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/offene, cambridge-cloud-rally-2026-gransden-lodge-2026/funster, cambridge-cloud-rally-2026-gransden-lodge-2026/racer]
 - points de circuit absents du .cup : 0
 - espaces inactifs introuvables : 3
   - 2026open/open: [TR 46]
@@ -70,20 +76,20 @@
 ## Zones d'observation rencontrées
 - 31× `Cylinder R=0.50 km  →  <ObservationZone radius="500" type="Cylinder"/>`
   <br>ex. 24th-fai-egc/15-meter task 7, 333KSIAZ
-- 28× `Cylinder R=3.00 km  →  <ObservationZone radius="3000" type="Cylinder"/>`
-  <br>ex. cdf2026-villefranche/club task 5, 000 ARRIVEE
-- 27× `Line 10.00 km (Radius 5.00 km)  →  <ObservationZone length="10000" type="Line"/>`
-  <br>ex. cdf2026-villefranche/club task 5, 006 Modelistes
 - 27× `enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=20.00 km, Angle=90.0°, Cylinder R=0.50 km  →  <ObservationZone type="BGAFixedCourse"/>`
   <br>ex. cdf2026-villefranche/club task 5, 059 Huit
+- 26× `Cylinder R=3.00 km  →  <ObservationZone radius="3000" type="Cylinder"/>`
+  <br>ex. cdf2026-villefranche/club task 5, 000 ARRIVEE
+- 25× `Line 10.00 km (Radius 5.00 km)  →  <ObservationZone length="10000" type="Line"/>`
+  <br>ex. cdf2026-villefranche/club task 5, 006 Modelistes
 - 22× `Cylinder R=5.00 km  →  <ObservationZone radius="5000" type="Cylinder"/>`
   <br>ex. coulommiers-express-2026-coulommiers-voisins-2026/multicasse-day-2 task 1, Bazoches Les Bray
-- 17× `Cylinder R=15.00 km  →  <ObservationZone radius="15000" type="Cylinder"/>`
-  <br>ex. coulommiers-express-2026-coulommiers-voisins-2026/multicasse-day-2 task 1, Trancault
 - 15× `Cylinder R=20.00 km  →  <ObservationZone radius="20000" type="Cylinder"/>`
   <br>ex. 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/15-meter task 7, 143 Kirnbergsee
-- 14× `Cylinder R=10.00 km  →  <ObservationZone radius="10000" type="Cylinder"/>`
+- 13× `Cylinder R=10.00 km  →  <ObservationZone radius="10000" type="Cylinder"/>`
   <br>ex. 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/15-meter task 7, 036 Balingen BHF
+- 12× `Cylinder R=15.00 km  →  <ObservationZone radius="15000" type="Cylinder"/>`
+  <br>ex. coulommiers-express-2026-coulommiers-voisins-2026/multicasse-day-2 task 1, Trancault
 - 12× `Line 20.00 km (Radius 10.00 km)  →  <ObservationZone length="20000" type="Line"/>`
   <br>ex. 57-klippeneck-segelflug-wettbewerb-klippeneck-2026/15-meter task 7, 003 AP3 Tuttlingen
 - 12× `enum.label.result_status.symmetric, Rmin=0.50 km, Rmax=10.00 km, Angle=90.0°, Cylinder R=0.50 km  →  <ObservationZone type="Keyhole"/>`
