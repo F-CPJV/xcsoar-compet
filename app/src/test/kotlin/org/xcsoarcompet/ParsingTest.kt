@@ -161,7 +161,7 @@ class ParsingTest {
             "AC D", "AN PARA Chalon", "AL SFC", "AH FL65",
         ).joinToString("\n")
 
-        val r = Airspace.filter(openAir, listOf("TMA LYON 3 DES R3201B", "PARA Chalon"), "")
+        val r = Airspace.filter(openAir, "TMA LYON 3 DES R3201B, PARA Chalon", "")
 
         assertEquals(2, r.removed.size)
         assertTrue(r.notFound.isEmpty())
@@ -175,7 +175,7 @@ class ParsingTest {
     @Test
     fun `espace inactif introuvable est rapporte`() {
         val openAir = "AC R\nAN TMA LYON 3\nAL SFC\n"
-        val r = Airspace.filter(openAir, listOf("ZONE INEXISTANTE"), "")
+        val r = Airspace.filter(openAir, "ZONE INEXISTANTE", "")
         assertEquals(listOf("ZONE INEXISTANTE"), r.notFound)
         assertTrue(r.removed.isEmpty())
     }
@@ -272,5 +272,25 @@ class ParsingTest {
         val twice = java.io.File(dir, "default.prf").readText()
         assertEquals(1, Regex("TP-CDF").findAll(twice).count())
         dir.deleteRecursively()
+    }
+
+    @Test
+    fun `nom d espace contenant des virgules`() {
+        val openAir = listOf(
+            "AC R", "AN LRR206 - Active H24, except SAR, Police, Medevac", "AL SFC",
+            "AC R", "AN LRR7 - Active H24", "AL SFC",
+            "AC R", "AN LRR8 - Active H24 - except state aircraft", "AL SFC",
+        ).joinToString("\n")
+        val listed = "LRR206 - Active H24, except SAR, Police, Medevac, " +
+            "LRR8 - Active H24 - except state aircraft"
+
+        val r = Airspace.filter(openAir, listed, "")
+
+        assertEquals(2, r.removed.size)
+        assertTrue(r.notFound.isEmpty())
+        assertFalse(r.content.contains("LRR206"))
+        assertFalse(r.content.contains("LRR8"))
+        // celui qui n'est pas listé reste
+        assertTrue(r.content.contains("AN LRR7 - Active H24"))
     }
 }

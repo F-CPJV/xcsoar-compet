@@ -1,0 +1,158 @@
+package org.xcsoarcompet
+
+import org.junit.Assume
+import org.junit.Test
+import java.io.File
+
+/**
+ * Passe le parseur sur de vraies compétitions, françaises et étrangères.
+ *
+ * Ne tourne pas en intégration continue : c'est un relevé, pas un test de
+ * régression — SoaringSpot change tous les jours et le réseau est requis.
+ *
+ *   LIVE_SURVEY=1 ./gradlew testDebugUnitTest --tests '*LiveSurveyTest*'
+ *
+ * Le rapport est écrit dans build/live-survey.md.
+ */
+class LiveSurveyTest {
+
+    private val competitions = listOf(
+        "cdf2026-villefranche",                                   // FR (témoin)
+        "cdf2026-chalons",                                        // FR
+        "coulommiers-express-2026-coulommiers-voisins-2026",      // FR
+        "57-klippeneck-segelflug-wettbewerb-klippeneck-2026",     // DE
+        "lahn-dill-bergland-cup-2026",                            // DE
+        "cambridge-cloud-rally-2026-gransden-lodge-2026",         // UK
+        "jonker-sailplanes-uk-club-nationals-2026",               // UK
+        "ccr-coppa-citta-di-rieti-rieti-2026",                    // IT
+        "66th-ro-national-championship-2026-clubdouble-craiova-2026", // RO
+        "25-hop-2026-velke-porici-2026",                          // CZ
+        "2026-m-domo-zostauto-taure-paluknys-2026",               // LT
+        "2026-canadian-national-gliding-competition-rockton-2026", // CA
+        "jwgc2026",                                               // championnat du monde junior
+        "grand-prix-club-la-cerdanya-2026-la-cerdanya-2026",      // ES
+    )
+
+    private val report = StringBuilder()
+
+    private fun line(s: String) {
+        println(s)
+        report.append(s).append('\n')
+    }
+
+    @Test
+    fun survey() {
+        Assume.assumeTrue("relevé désactivé", System.getenv("LIVE_SURVEY") != null)
+
+        var tasks = 0
+        var built = 0
+        var aat = 0
+        val noWaypointFile = ArrayList<String>()
+        val noAirspaceFile = ArrayList<String>()
+        val unknownZones = LinkedHashMap<String, Int>()
+        val missingPoints = ArrayList<String>()
+        val noRules = ArrayList<String>()
+        val airspaceMisses = ArrayList<String>()
+
+        line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
+        line("|---|---|---|---|---|---|---|---|")
+
+        for (slug in competitions) {
+            val refs = try {
+                SoaringSpot.listTasks(slug)
+            } catch (e: Exception) {
+                line("| $slug | — | — | — | — | ❌ ${e.message} | | |")
+                continue
+            }
+            if (refs.isEmpty()) {
+                line("| $slug | — | — | — | — | aucune task publiée | | |")
+                continue
+            }
+
+            val files = try { SoaringSpot.listContestFiles(slug) } catch (e: Exception) { emptyList() }
+            val wpFile = SoaringSpot.waypointFile(files)
+            val asFile = SoaringSpot.airspaceFile(files)
+            if (wpFile == null) noWaypointFile.add(slug)
+            if (asFile == null) noAirspaceFile.add(slug)
+
+            val waypoints = wpFile?.let {
+                try { Cup.parse(String(SoaringSpot.download(it), Charsets.UTF_8)) }
+                catch (e: Exception) { null }
+            }
+            var openAir: String? = null
+
+            // dernière task de chaque classe
+            for (ref in refs.groupBy { it.cls }.map { it.value.last() }) {
+                tasks++
+                val parsed = try {
+                    SoaringSpot.parseTask(SoaringSpot.fetchText(SoaringSpot.taskUrl(slug, ref)))
+                } catch (e: Exception) {
+                    line("| $slug | ${ref.cls} | ${ref.number} | — | — | ❌ ${e.message} | | |")
+                    continue
+                }
+                if (parsed.isAat) aat++
+
+                parsed.points.filter { !TaskXml.isKnownZone(it.zone) }.forEach {
+                    unknownZones[it.zone] = (unknownZones[it.zone] ?: 0) + 1
+                }
+
+                val rules = TaskXml.parseRules(parsed.notes)
+                val rulesFound = listOfNotNull(
+                    rules.startMaxSpeed?.let { "V" },
+                    rules.finishMinHeight?.let { "H" },
+                ).joinToString("").ifEmpty { "—" }
+                if (rulesFound == "—") noRules.add("$slug/${ref.cls}")
+
+                var taskState = "—"
+                if (waypoints != null) {
+                    val missing = parsed.points.map { it.name }.filter { !waypoints.containsKey(it) }
+                    if (missing.isEmpty()) {
+                        TaskXml.build(parsed, waypoints, rules)
+                        built++
+                        taskState = "✔"
+                    } else {
+                        taskState = "❌ ${missing.size} pt(s) absents"
+                        missingPoints.add("$slug/${ref.cls}: ${missing.take(3)}")
+                    }
+                } else {
+                    taskState = "pas de .cup"
+                }
+
+                var asState = "—"
+                if (parsed.inactiveAirspaces.isNotEmpty()) {
+                    if (asFile == null) {
+                        asState = "${parsed.inactiveAirspaces.size} listés, pas de fichier"
+                    } else {
+                        if (openAir == null)
+                            openAir = String(SoaringSpot.download(asFile), Charsets.UTF_8)
+                        val res = Airspace.filter(openAir!!, parsed.inactiveRaw, "")
+                        asState = "${res.removed.size}/${parsed.inactiveAirspaces.size}"
+                        if (res.notFound.isNotEmpty())
+                            airspaceMisses.add("$slug/${ref.cls}: ${res.notFound.take(3)}")
+                    }
+                }
+
+                val kind = if (parsed.isAat) "AAT ${parsed.aatSeconds!! / 60}min" else "RT"
+                line(
+                    "| $slug | ${ref.cls} | ${ref.number} | $kind | ${parsed.points.size} " +
+                        "| $taskState | $rulesFound | $asState |"
+                )
+            }
+        }
+
+        line("")
+        line("## Synthèse")
+        line("- tasks analysées : $tasks, circuits générés : $built, dont AAT : $aat")
+        line("- compétitions sans fichier de points de virage : ${noWaypointFile.size} ${noWaypointFile}")
+        line("- compétitions sans fichier d'espaces : ${noAirspaceFile.size} ${noAirspaceFile}")
+        line("- règles du jour non trouvées : ${noRules.size} ${noRules.take(8)}")
+        line("- points de circuit absents du .cup : ${missingPoints.size}")
+        missingPoints.take(8).forEach { line("  - $it") }
+        line("- espaces inactifs introuvables : ${airspaceMisses.size}")
+        airspaceMisses.take(8).forEach { line("  - $it") }
+        line("- zones d'observation non reconnues : ${unknownZones.size}")
+        unknownZones.entries.take(10).forEach { line("  - ${it.value}× « ${it.key} »") }
+
+        File("build/live-survey.md").writeText(report.toString())
+    }
+}

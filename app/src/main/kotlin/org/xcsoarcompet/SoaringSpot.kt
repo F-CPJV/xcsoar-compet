@@ -26,6 +26,8 @@ object SoaringSpot {
         val version: String,
         val points: List<Turnpoint>,
         val inactiveAirspaces: List<String>,
+        /** liste telle que publiée : les noms peuvent contenir des virgules */
+        val inactiveRaw: String,
         val notes: String,
         val aatSeconds: Int?,
     ) {
@@ -135,12 +137,13 @@ object SoaringSpot {
         if (points.size < 2)
             throw IllegalStateException("seulement ${points.size} point(s) trouvé(s)")
 
-        val inactive = Regex("task-excluded-airspaces.*?</i>(.*?)</div>", DOTALL)
+        val inactiveRaw = Regex("task-excluded-airspaces.*?</i>(.*?)</div>", DOTALL)
             .find(html)?.let { m ->
                 Html.text(m.groupValues[1])
                     .replace(Regex("Inactive airspaces\\s*:?", RegexOption.IGNORE_CASE), "")
-                    .split(',').map { it.trim() }.filter { it.isNotEmpty() }
-            } ?: emptyList()
+                    .trim()
+            } ?: ""
+        val inactive = inactiveRaw.split(',').map { it.trim() }.filter { it.isNotEmpty() }
 
         val notes = Regex("Task notes(.*?)(?:<footer|task-excluded|$)", DOTALL)
             .find(html)?.let { Html.lines(it.groupValues[1]) } ?: ""
@@ -153,7 +156,7 @@ object SoaringSpot {
                 (it.groupValues[3].toIntOrNull() ?: 0)
         }
 
-        return Task(version, points, inactive, notes, aat)
+        return Task(version, points, inactive, inactiveRaw, notes, aat)
     }
 
     /** Fichiers publiés par l'organisateur (onglet Downloads). */

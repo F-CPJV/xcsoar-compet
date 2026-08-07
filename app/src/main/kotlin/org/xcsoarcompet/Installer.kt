@@ -61,6 +61,12 @@ class Installer(
             }
             if (options.installTask) {
                 val waypoints = Cup.parse(String(cupBytes, Charsets.UTF_8))
+                if (waypoints.isEmpty()) {
+                    // relevé au championnat de Roumanie 2026 : un .cup à 0 octet
+                    log("! the organiser's waypoint file holds no usable point " +
+                        "(${cupBytes.size} bytes) — the task cannot be built")
+                    return false
+                }
                 val rules = TaskXml.parseRules(parsed.notes)
                 rules.startMaxSpeed?.let { log("rule: max start speed ${Math.round(it * 3.6)} km/h") }
                 rules.finishMinHeight?.let { log("rule: min finish height $it m") }
@@ -92,7 +98,7 @@ class Installer(
                         "task ${task.number} (${task.date}) ${parsed.version}\n" +
                         "* ${parsed.inactiveAirspaces.size} inactive airspaces removed " +
                         "from ${asFile.name}\n"
-                    val res = Airspace.filter(openAir, parsed.inactiveAirspaces, header)
+                    val res = Airspace.filter(openAir, parsed.inactiveRaw, header)
                     XCSoarTarget.write(target, AIRSPACE_FILE, res.content)
                     val blocks = res.removed.values.sum()
                     log("airspace: $AIRSPACE_FILE — ${res.removed.size} removed ($blocks blocks)")

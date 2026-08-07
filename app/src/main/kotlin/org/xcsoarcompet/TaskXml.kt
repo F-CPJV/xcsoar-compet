@@ -60,8 +60,13 @@ object TaskXml {
             val r = km(zone, """R=([\d.]+) km""") ?: 500
             return """<ObservationZone radius="$r" type="Cylinder"/>"""
         }
-        // zone inconnue : cylindre de 500 m, signalé à l'appelant par le retour null-safe
-        return """<ObservationZone radius="500" type="Cylinder"/>"""
+        // Zone non reconnue. Cas relevé en compétition : le secteur « next »,
+        // orienté sur la branche suivante, que XCSoar ne sait pas stocker tel
+        // quel. On retient au moins le rayon annoncé — un cylindre de 500 m par
+        // défaut serait très inférieur à la zone réelle. isKnownZone() reste
+        // faux pour que l'appelant prévienne le pilote.
+        val r = km(zone, """R(?:max)?=([\d.]+) km""") ?: 500
+        return """<ObservationZone radius="$r" type="Cylinder"/>"""
     }
 
     fun isKnownZone(zone: String): Boolean =
