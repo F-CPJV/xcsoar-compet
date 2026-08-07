@@ -207,4 +207,83 @@ class ParsingTest {
         assertTrue(c.name.startsWith("Championnat de France 2026"))
         assertTrue(c.info.contains("Villefranche-Tarare"))
     }
+
+    // ------------------------------------------------------------- profil ---
+
+    @Test
+    fun `cle existante remplacee`() {
+        val prf = "AirspaceFileList=\"%LOCAL_PATH%\\France.txt\"\nMapFile=\"%LOCAL_PATH%\\FR.xcm\"\n"
+        val out = XCSoarTarget.writeValue(prf, "AirspaceFileList", "%LOCAL_PATH%\\compet.txt")
+        assertTrue(out.contains("AirspaceFileList=\"%LOCAL_PATH%\\compet.txt\""))
+        assertTrue(out.contains("MapFile="))
+        assertEquals(1, Regex("AirspaceFileList=").findAll(out).count())
+    }
+
+    @Test
+    fun `cle absente ajoutee`() {
+        val out = XCSoarTarget.writeValue("MapFile=\"x\"\n", "WPFileList", "a.cup")
+        assertTrue(out.contains("MapFile=\"x\""))
+        assertTrue(out.contains("WPFileList=\"a.cup\""))
+    }
+
+    @Test
+    fun `waypoints ajoutes sans ecraser ceux du pilote`() {
+        val existing = "%LOCAL_PATH%\\FR.cup"
+        val out = XCSoarTarget.addToList(existing, "TP-CDF.cup")
+        assertEquals("%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF.cup", out)
+    }
+
+    @Test
+    fun `waypoints deja presents non dupliques`() {
+        val existing = "%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF.cup"
+        assertEquals(existing, XCSoarTarget.addToList(existing, "TP-CDF.cup"))
+    }
+
+    @Test
+    fun `liste vide donne une seule entree`() {
+        assertEquals("%LOCAL_PATH%\\TP.cup", XCSoarTarget.addToList("", "TP.cup"))
+    }
+
+    @Test
+    fun `lecture de cle avec repli sur l ancien nom`() {
+        val prf = "WPFile=\"%LOCAL_PATH%\\FR.cup\"\n"
+        val (key, value) = XCSoarTarget.readValue(prf, listOf("WPFileList", "WPFile"))!!
+        assertEquals("WPFile", key)
+        assertEquals("%LOCAL_PATH%\\FR.cup", value)
+        assertNull(XCSoarTarget.readValue(prf, listOf("Inexistant")))
+    }
+
+    @Test
+    fun `profil reel d un pilote patche correctement`() {
+        val dir = java.io.File.createTempFile("xcsoar", "").let {
+            it.delete(); it.mkdirs(); it
+        }
+        java.io.File(dir, "default.prf").writeText(fixture("default.prf"))
+        val target = XCSoarTarget.Target(dir)
+
+        val messages = XCSoarTarget.setProfileFiles(
+            target, "compet_airspace.txt", "TP-CDF-Club-Villefranche-2026-v1.0.cup"
+        )
+        val out = java.io.File(dir, "default.prf").readText()
+
+        // les espaces du jour remplacent le fichier national
+        assertTrue(out.contains("AirspaceFileList=\"%LOCAL_PATH%\\compet_airspace.txt\""))
+        assertFalse(out.contains("France-2026-04-16-AirSpace.txt"))
+        assertTrue(messages.any { it.contains("previous airspace was") })
+
+        // les points de virage du pilote sont conservés, ceux de la compét ajoutés
+        assertTrue(out.contains(
+            "WPFileList=\"%LOCAL_PATH%\\FR.cup|%LOCAL_PATH%\\TP-CDF-Club-Villefranche-2026-v1.0.cup\""))
+
+        // le reste du profil est intact
+        assertTrue(out.contains("MapFile=\"%LOCAL_PATH%\\FR.xcm\""))
+        assertEquals(fixture("default.prf").lines().size, out.lines().size)
+
+        // relancer deux fois ne duplique rien
+        XCSoarTarget.setProfileFiles(
+            target, "compet_airspace.txt", "TP-CDF-Club-Villefranche-2026-v1.0.cup")
+        val twice = java.io.File(dir, "default.prf").readText()
+        assertEquals(1, Regex("TP-CDF").findAll(twice).count())
+        dir.deleteRecursively()
+    }
 }

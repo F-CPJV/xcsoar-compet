@@ -29,6 +29,8 @@ class Installer(
 
     fun run(): Boolean {
         var ok = true
+        var airspaceInstalled: String? = null
+        var waypointsInstalled: String? = null
         val page = SoaringSpot.fetchText(SoaringSpot.taskUrl(slug, task))
         val parsed = SoaringSpot.parseTask(page)
         val kind = if (parsed.isAat) {
@@ -55,6 +57,7 @@ class Installer(
             if (options.installWaypoints) {
                 XCSoarTarget.write(target, wpFile.name, cupBytes)
                 log("waypoints: ${wpFile.name}")
+                waypointsInstalled = wpFile.name
             }
             if (options.installTask) {
                 val waypoints = Cup.parse(String(cupBytes, Charsets.UTF_8))
@@ -98,8 +101,17 @@ class Installer(
                         ok = false
                     }
                 }
-                if (options.updateProfile) log(XCSoarTarget.setAirspaceFile(target, AIRSPACE_FILE))
+                airspaceInstalled = AIRSPACE_FILE
             }
+        }
+
+        if (options.updateProfile && (airspaceInstalled != null || waypointsInstalled != null)) {
+            XCSoarTarget.setProfileFiles(target, airspaceInstalled, waypointsInstalled)
+                .forEach { line ->
+                    log(line)
+                    if (line.startsWith("!")) ok = false
+                }
+            log("close XCSoar before installing — it rewrites default.prf when it exits")
         }
         return ok
     }

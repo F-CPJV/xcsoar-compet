@@ -55,25 +55,86 @@ object XCSoarTarget {
         write(target, name, text.toByteArray(Charsets.UTF_8))
 
     /**
-     * Fait pointer le profil sur le fichier d'espaces aériens du jour.
-     * XCSoar 7.44 utilise `AirspaceFileList` ; les versions antérieures
-     * `AirspaceFile`. Retourne le message à afficher.
+     * Déposer un fichier ne suffit pas : XCSoar ne charge que ce que le profil
+     * désigne. Ces clés acceptent plusieurs fichiers séparés par « | »
+     * (`ProfileMap::GetMultiplePaths`), chacun préfixé de `%LOCAL_PATH%`.
+     *
+     * Noms de clés : `AirspaceFileList` / `WPFileList` depuis la 7.43,
+     * `AirspaceFile` / `WPFile` avant.
      */
-    fun setAirspaceFile(target: Target, fileName: String): String {
+    private const val LOCAL = "%LOCAL_PATH%\\"
+
+    fun readValue(profile: String, keys: List<String>): Pair<String, String>? {
+        for (key in keys) {
+            val m = Regex("^$key=\"([^\"]*)\"", RegexOption.MULTILINE).find(profile)
+            if (m != null) return key to m.groupValues[1]
+        }
+        return null
+    }
+
+    /** Écrit la clé si elle existe, l'ajoute en fin de profil sinon. */
+    fun writeValue(profile: String, key: String, value: String): String {
+        val re = Regex("^$key=\"[^\"]*\"", RegexOption.MULTILINE)
+        // forme lambda : la valeur est insérée telle quelle, sans échappement
+        if (re.containsMatchIn(profile))
+            return re.replace(profile) { "$key=\"$value\"" }
+        val separator = if (profile.isEmpty() || profile.endsWith("\n")) "" else "\n"
+        return profile + separator + key + "=\"" + value + "\"\n"
+    }
+
+    /**
+     * Ajoute un fichier à une liste sans écraser ce que le pilote y a déjà mis
+     * — sa propre base de points de virage, typiquement.
+     */
+    fun addToList(current: String, fileName: String): String {
+        val entry = LOCAL + fileName
+        val entries = current.split('|').filter { it.isNotBlank() }
+        if (entries.contains(entry)) return current
+        return (entries + entry).joinToString("|")
+    }
+
+    /**
+     * Espaces aériens et points de virage du jour dans le profil.
+     * Les espaces **remplacent** la liste : garder le fichier national du
+     * pilote y réintroduirait les zones que l'organisateur a désactivées.
+     * Les points de virage sont **ajoutés** à la liste existante.
+     */
+    fun setProfileFiles(target: Target, airspace: String?, waypoints: String?): List<String> {
         val prf = target.profileFile
-        if (!prf.isFile) return "profil absent : sélectionnez « $fileName » dans XCSoar"
-        val text = prf.readText(Charsets.UTF_8)
-        for (key in listOf("AirspaceFileList", "AirspaceFile")) {
-            val re = Regex("^($key=\")[^\"]*(\")", RegexOption.MULTILINE)
-            if (re.containsMatchIn(text)) {
-                val updated = re.replace(text) { m ->
-                    m.groupValues[1] + "%LOCAL_PATH%\\" + fileName + m.groupValues[2]
-                }
-                if (updated == text) return "profil : déjà sur $fileName"
-                prf.writeText(updated, Charsets.UTF_8)
-                return "profil : $key → $fileName"
+        if (!prf.isFile) return listOf(
+            "! no default.prf yet — start XCSoar once, then install again"
+        )
+        var text = prf.readText(Charsets.UTF_8)
+        val messages = ArrayList<String>()
+
+        if (airspace != null) {
+            val found = readValue(text, listOf("AirspaceFileList", "AirspaceFile"))
+            val key = found?.first ?: "AirspaceFileList"
+            val previous = found?.second.orEmpty()
+            val wanted = LOCAL + airspace
+            if (previous == wanted) {
+                messages.add("profile: airspace already set")
+            } else {
+                if (previous.isNotBlank())
+                    messages.add("profile: previous airspace was $previous")
+                text = writeValue(text, key, wanted)
+                messages.add("profile: $key -> $airspace")
             }
         }
-        return "clé AirspaceFile absente du profil : sélectionnez « $fileName » dans XCSoar"
+
+        if (waypoints != null) {
+            val found = readValue(text, listOf("WPFileList", "WPFile"))
+            val key = found?.first ?: "WPFileList"
+            val updated = addToList(found?.second.orEmpty(), waypoints)
+            if (updated == found?.second) {
+                messages.add("profile: waypoints already listed")
+            } else {
+                text = writeValue(text, key, updated)
+                messages.add("profile: $key += $waypoints")
+            }
+        }
+
+        prf.writeText(text, Charsets.UTF_8)
+        return messages
     }
 }
