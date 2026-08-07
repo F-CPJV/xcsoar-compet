@@ -17,20 +17,44 @@ import java.io.File
 class LiveSurveyTest {
 
     private val competitions = listOf(
-        "cdf2026-villefranche",                                   // FR (témoin)
-        "cdf2026-chalons",                                        // FR
-        "coulommiers-express-2026-coulommiers-voisins-2026",      // FR
-        "57-klippeneck-segelflug-wettbewerb-klippeneck-2026",     // DE
-        "lahn-dill-bergland-cup-2026",                            // DE
-        "cambridge-cloud-rally-2026-gransden-lodge-2026",         // UK
-        "jonker-sailplanes-uk-club-nationals-2026",               // UK
-        "ccr-coppa-citta-di-rieti-rieti-2026",                    // IT
-        "66th-ro-national-championship-2026-clubdouble-craiova-2026", // RO
-        "25-hop-2026-velke-porici-2026",                          // CZ
-        "2026-m-domo-zostauto-taure-paluknys-2026",               // LT
-        "2026-canadian-national-gliding-competition-rockton-2026", // CA
-        "jwgc2026",                                               // championnat du monde junior
-        "grand-prix-club-la-cerdanya-2026-la-cerdanya-2026",      // ES
+        // France
+        "cdf2026-villefranche",                                   // championnat de France club
+        "cdf2026-chalons",                                        // à venir
+        "coulommiers-express-2026-coulommiers-voisins-2026",
+        "les-8-jours-de-fontainebleau-2026-moret-episy-2026",
+        "planeur-academie-fontenay-le-comte-2026",
+        "pagn2026",
+        // Allemagne
+        "57-klippeneck-segelflug-wettbewerb-klippeneck-2026",
+        "lahn-dill-bergland-cup-2026",
+        // Royaume-Uni
+        "cambridge-cloud-rally-2026-gransden-lodge-2026",
+        "jonker-sailplanes-uk-club-nationals-2026",
+        // Pologne
+        "24th-fai-egc",                                           // championnats d'Europe FAI
+        "lisie26",
+        "lcup2026",
+        "2026open",
+        // Benelux
+        "kiewit-cup-2026-kiewit-hasselt-2026",                    // Belgique
+        "vergulde-venturi-20-2026-maldens-vlak-2026",             // Pays-Bas
+        // Europe centrale et de l'Est
+        "trogar-2-2026-nitra-2026",                               // Slovaquie
+        "tauerncup2026",                                          // Autriche
+        "25-hop-2026-velke-porici-2026",                          // Tchéquie, à venir
+        "66th-ro-national-championship-2026-clubdouble-craiova-2026", // Roumanie, .cup vide
+        "2026-m-domo-zostauto-taure-paluknys-2026",               // Lituanie
+        "cempionat-mo-2026-klass-smesannyj-reshety",              // Russie
+        // Sud de l'Europe
+        "ccr-coppa-citta-di-rieti-rieti-2026",                    // Italie, à venir
+        "grand-prix-club-la-cerdanya-2026-la-cerdanya-2026",      // Espagne, à venir
+        // Hors d'Europe
+        "2026-canadian-national-gliding-competition-rockton-2026", // Canada
+        "wcr2026",                                                // Afrique du Sud
+        "cempionat-rossii-2026-klass-otkrytyj-evsino",            // Australie
+        "copa-oeste-2025-raul-o-bavaud-trenque-lauquen-2025",     // Argentine
+        // International
+        "jwgc2026",                                               // mondial junior
     )
 
     private val report = StringBuilder()
@@ -56,7 +80,7 @@ class LiveSurveyTest {
         val gasFailures = ArrayList<String>()
         var gasUsed = 0
         var upcoming = 0
-        val allZones = LinkedHashMap<String, Int>()
+        val allZones = LinkedHashMap<String, Pair<Int, String>>()
 
         line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
         line("|---|---|---|---|---|---|---|---|")
@@ -105,7 +129,9 @@ class LiveSurveyTest {
                 }
                 parsed.points.forEach { tp ->
                     val key = tp.zone + "  →  " + TaskXml.observationZone(tp.zone)
-                    allZones[key] = (allZones[key] ?: 0) + 1
+                    val seen = allZones[key]
+                    allZones[key] = ((seen?.first ?: 0) + 1) to
+                        (seen?.second ?: "$slug/${ref.cls} task ${ref.number}, ${tp.name}")
                 }
 
                 val rules = TaskXml.parseRules(parsed.notes)
@@ -178,8 +204,9 @@ class LiveSurveyTest {
         airspaceMisses.take(8).forEach { line("  - $it") }
         line("")
         line("## Zones d'observation rencontrées")
-        allZones.entries.sortedByDescending { it.value }.forEach {
-            line("- ${it.value}× `${it.key}`")
+        allZones.entries.sortedByDescending { it.value.first }.forEach {
+            line("- ${it.value.first}× `${it.key}`")
+            line("  <br>ex. ${it.value.second}")
         }
         line("")
         line("- zones d'observation non reconnues : ${unknownZones.size}")

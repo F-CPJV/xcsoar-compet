@@ -41,7 +41,15 @@ class Installer(
         log("Task ${task.number} (${task.cls}) ${parsed.version}: ${parsed.points.size} points, $kind")
 
         parsed.points.filter { !TaskXml.isKnownZone(it.zone) }.forEach {
-            log("! unknown observation zone on ${it.name}: \"${it.zone}\" — using a 500 m cylinder")
+            log("! unknown observation zone on ${it.name}: \"${it.zone}\" " +
+                "— approximated by a cylinder, check it against the briefing")
+            ok = false
+        }
+        // XCSoar stores start_max_height and finish_min_height, but no ceiling
+        // on a zone: an altitude limit published there cannot be carried over.
+        parsed.points.filter { it.zone.contains("alt.", ignoreCase = true) }.forEach {
+            log("! altitude limit on ${it.name} (\"${it.zone}\") — XCSoar cannot " +
+                "store it, mind it yourself")
             ok = false
         }
 
