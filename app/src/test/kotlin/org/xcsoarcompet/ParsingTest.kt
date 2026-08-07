@@ -293,4 +293,107 @@ class ParsingTest {
         // celui qui n'est pas listé reste
         assertTrue(r.content.contains("AN LRR7 - Active H24"))
     }
+
+    // ------------------------------------------- fichiers de l'organisateur --
+
+    @Test
+    fun `cup avec tiret bas dans le nom est retenu`() {
+        val files = listOf(
+            SoaringSpot.ContestFile("LDBCM_20260705.cup", "/a"),
+            SoaringSpot.ContestFile("LDBCM_20260705_garmin.gpx", "/b"),
+            SoaringSpot.ContestFile("Luftraum_LDBCM_20260705.txt", "/c"),
+        )
+        assertEquals("LDBCM_20260705.cup", SoaringSpot.waypointFile(files)!!.name)
+        assertEquals("Luftraum_LDBCM_20260705.txt", SoaringSpot.airspaceFile(files)!!.name)
+    }
+
+    @Test
+    fun `derniere version de cup retenue`() {
+        val files = listOf(
+            SoaringSpot.ContestFile("JWGC_TP_v1.cup", "/a"),
+            SoaringSpot.ContestFile("JWGC_TP_v2.cup", "/b"),
+        )
+        assertEquals("JWGC_TP_v2.cup", SoaringSpot.waypointFile(files)!!.name)
+    }
+
+    // ------------------------------------------------------- GlideAndSeek ---
+
+    @Test
+    fun `reponse GlideAndSeek convertie en points`() {
+        val json = """{"success":true,"message":{"taskDate":"2026-08-05",
+            "taskDistance":149115,"points":[
+            {"type":"Line","radius":5000,"altitude":257.86,"lat":43.32195,"lng":-80.17721,"name":"63Rockton"},
+            {"type":"Cylinder","radius":15000,"altitude":254.51,"lat":42.96833,"lng":-80.59222,"name":"56Norwich"}]}}"""
+        val p = GlideAndSeek.parse(json)
+        assertEquals(2, p.size)
+        assertEquals(43.32195, p["63Rockton"]!!.lat, 1e-5)
+        assertEquals(-80.17721, p["63Rockton"]!!.lon, 1e-5)
+        assertEquals(254.51, p["56Norwich"]!!.altitude, 0.01)
+    }
+
+    @Test
+    fun `echec GlideAndSeek signale`() {
+        try {
+            GlideAndSeek.parse("""{"success":false,"message":"Request failed with status code 404"}""")
+            fail("devait lever")
+        } catch (e: IllegalStateException) {
+            assertTrue(e.message!!.contains("404"))
+        }
+    }
+
+    @Test
+    fun `cup ecrit puis relu`() {
+        val src = listOf(
+            Cup.Point("63Rockton", 43.32195, -80.17721, 257.86),
+            Cup.Point("Point, virgule", 45.70778, 2.0325, 760.0),
+        )
+        val reread = Cup.parse(Cup.write(src))
+        assertEquals(2, reread.size)
+        assertEquals(43.32195, reread["63Rockton"]!!.lat, 1e-4)
+        assertEquals(-80.17721, reread["63Rockton"]!!.lon, 1e-4)
+        // le nom contenant une virgule survit à l'aller-retour
+        assertEquals(2.0325, reread["Point, virgule"]!!.lon, 1e-4)
+    }
+
+    // --------------------------------------------------- règles multilingues --
+
+    @Test
+    fun `regles en anglais`() {
+        val notes = """
+            Maximum start speed: 170 km/h (ground speed)
+            Minimum finish height 600 m QNH
+            Maximum start altitude 1450 m
+        """.trimIndent()
+        val r = TaskXml.parseRules(notes)
+        assertEquals(170 / 3.6, r.startMaxSpeed!!, 1e-4)
+        assertEquals(600, r.finishMinHeight)
+        assertEquals(1450, r.startMaxHeight)
+    }
+
+    @Test
+    fun `regles en allemand`() {
+        val notes = """
+            Maximale Abfluggeschwindigkeit 170 km/h
+            Mindestankunftshöhe im Zielkreis 600 m
+            Maximale Abflughöhe 1450 m
+        """.trimIndent()
+        val r = TaskXml.parseRules(notes)
+        assertEquals(170 / 3.6, r.startMaxSpeed!!, 1e-4)
+        assertEquals(600, r.finishMinHeight)
+        assertEquals(1450, r.startMaxHeight)
+    }
+
+    @Test
+    fun `lignes sans rapport ignorees`() {
+        val notes = """
+            Fréquence décollages / arrivées : 118.255 MHz
+            Altitude de référence du terrain : 328m
+            Altitude maximale de la journée : 3300m
+            FL65 - 2022m
+        """.trimIndent()
+        val r = TaskXml.parseRules(notes)
+        assertNull(r.startMaxSpeed)
+        assertNull(r.finishMinHeight)
+        assertNull(r.startMaxHeight)
+    }
 }

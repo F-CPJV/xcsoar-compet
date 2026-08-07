@@ -24,6 +24,7 @@ class Installer(
     companion object {
         const val TASK_FILE = "compet_task.tsk"
         const val AIRSPACE_FILE = "compet_airspace.txt"
+        const val WAYPOINT_FILE = "compet_waypoints.cup"
         const val DEFAULT_TASK_FILE = "Default.tsk"
     }
 
@@ -49,22 +50,54 @@ class Installer(
         val asFile = SoaringSpot.airspaceFile(files)
 
         if (options.installTask || options.installWaypoints) {
-            if (wpFile == null) {
-                log("! no waypoint file (.cup) published by the organiser")
-                return false
-            }
-            val cupBytes = SoaringSpot.download(wpFile)
-            if (options.installWaypoints) {
-                XCSoarTarget.write(target, wpFile.name, cupBytes)
-                log("waypoints: ${wpFile.name}")
-                waypointsInstalled = wpFile.name
-            }
-            if (options.installTask) {
-                val waypoints = Cup.parse(String(cupBytes, Charsets.UTF_8))
-                if (waypoints.isEmpty()) {
+            var waypoints: Map<String, Cup.Point> = emptyMap()
+            var cupBytes: ByteArray? = null
+
+            if (wpFile != null) {
+                cupBytes = SoaringSpot.download(wpFile)
+                waypoints = Cup.parse(String(cupBytes, Charsets.UTF_8))
+                if (waypoints.isEmpty())
                     // relevé au championnat de Roumanie 2026 : un .cup à 0 octet
                     log("! the organiser's waypoint file holds no usable point " +
-                        "(${cupBytes.size} bytes) — the task cannot be built")
+                        "(${cupBytes.size} bytes)")
+            } else {
+                log("! no waypoint file published by the organiser")
+            }
+
+            // Sans coordonnées utilisables, on les demande à GlideAndSeek.
+            val unresolved = parsed.points.map { it.name }.filter { !waypoints.containsKey(it) }
+            var fromGlideAndSeek: Map<String, Cup.Point> = emptyMap()
+            if (unresolved.isNotEmpty()) {
+                try {
+                    fromGlideAndSeek = GlideAndSeek.waypoints(slug, task)
+                    if (fromGlideAndSeek.isNotEmpty()) {
+                        waypoints = fromGlideAndSeek + waypoints
+                        log("coordinates: ${fromGlideAndSeek.size} points from GlideAndSeek")
+                    }
+                } catch (e: Exception) {
+                    log("! GlideAndSeek unavailable: ${e.message}")
+                }
+            }
+
+            if (options.installWaypoints) {
+                when {
+                    cupBytes != null && cupBytes.isNotEmpty() -> {
+                        XCSoarTarget.write(target, wpFile!!.name, cupBytes)
+                        log("waypoints: ${wpFile.name}")
+                        waypointsInstalled = wpFile.name
+                    }
+                    fromGlideAndSeek.isNotEmpty() -> {
+                        XCSoarTarget.write(target, WAYPOINT_FILE, Cup.write(fromGlideAndSeek.values))
+                        log("waypoints: $WAYPOINT_FILE (built from GlideAndSeek)")
+                        waypointsInstalled = WAYPOINT_FILE
+                    }
+                    else -> log("! no waypoints to install")
+                }
+            }
+
+            if (options.installTask) {
+                if (waypoints.isEmpty()) {
+                    log("! no coordinates available — the task cannot be built")
                     return false
                 }
                 val rules = TaskXml.parseRules(parsed.notes)
@@ -90,9 +123,14 @@ class Installer(
                 log("! no airspace file (.txt) published by the organiser")
             } else {
                 val openAir = String(SoaringSpot.download(asFile), Charsets.UTF_8)
-                if (parsed.inactiveAirspaces.isEmpty()) {
+                if (!openAir.lineSequence().any { it.startsWith("AC ") }) {
+                    // ne pas faire pointer le profil sur un fichier qui n'en est pas un
+                    log("! ${asFile.name} is not an OpenAir file — airspace left untouched")
+                    ok = false
+                } else if (parsed.inactiveAirspaces.isEmpty()) {
                     XCSoarTarget.write(target, AIRSPACE_FILE, openAir)
                     log("airspace: ${asFile.name} (no inactive airspace listed today)")
+                    airspaceInstalled = AIRSPACE_FILE
                 } else {
                     val header = "* Airspace of the day — $slug ${task.cls} " +
                         "task ${task.number} (${task.date}) ${parsed.version}\n" +
@@ -106,8 +144,8 @@ class Installer(
                         log("! inactive airspace not found in the file: $it")
                         ok = false
                     }
+                    airspaceInstalled = AIRSPACE_FILE
                 }
-                airspaceInstalled = AIRSPACE_FILE
             }
         }
 

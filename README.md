@@ -20,6 +20,11 @@ turnpoints; this one also carries over what actually matters in flight:
 | Start/finish rules (max start speed, min finish height) | **yes** | no |
 | Inactive airspaces removed | **yes** | no |
 
+Coordinates come from the organiser's `.cup`. When it is missing or empty,
+they are fetched from the GlideAndSeek API instead, and a waypoint file is
+written from them — so the task can always be built. Start and finish rules
+are read from task notes in French, English and German.
+
 ## What it writes
 
 Into `Android/media/<xcsoar-package>/`:

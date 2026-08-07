@@ -18,8 +18,8 @@ android {
         applicationId = "org.xcsoarcompet"
         minSdk = 26
         targetSdk = 35
-        versionCode = 5
-        versionName = "0.5"
+        versionCode = 6
+        versionName = "0.6"
     }
 
     signingConfigs {
@@ -56,4 +56,6 @@ android {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    // org.json est fourni par Android ; en test JVM il faut la vraie implémentation
+    testImplementation("org.json:json:20240303")
 }

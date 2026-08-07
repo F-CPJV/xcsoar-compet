@@ -44,6 +44,36 @@ object Cup {
         return if (m.groupValues[3] == "S" || m.groupValues[3] == "W") -value else value
     }
 
+    /** 45.70778 → « 4542.467N » (ou « 00201.950E » en longitude). */
+    fun formatCoord(value: Double, isLatitude: Boolean): String {
+        val hemisphere = if (isLatitude) (if (value < 0) 'S' else 'N')
+        else (if (value < 0) 'W' else 'E')
+        val abs = Math.abs(value)
+        val degrees = abs.toInt()
+        val minutes = (abs - degrees) * 60.0
+        val width = if (isLatitude) 2 else 3
+        return String.format(
+            java.util.Locale.US, "%0${width}d%06.3f%c", degrees, minutes, hemisphere
+        )
+    }
+
+    /**
+     * Écrit un fichier CUP minimal. Sert quand les coordonnées viennent de
+     * GlideAndSeek faute de fichier publié par l'organisateur : XCSoar dispose
+     * ainsi quand même des points de virage de l'épreuve.
+     */
+    fun write(points: Collection<Point>): String {
+        val sb = StringBuilder("name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc\n")
+        for (p in points) {
+            sb.append('"').append(p.name.replace("\"", "\"\"")).append("\",\"\",,")
+                .append(formatCoord(p.lat, true)).append(',')
+                .append(formatCoord(p.lon, false)).append(',')
+                .append(String.format(java.util.Locale.US, "%.0fm", p.altitude))
+                .append(",1,,,,\"\"\n")
+        }
+        return sb.toString()
+    }
+
     /** Indexe un fichier CUP par nom de point. */
     fun parse(content: String): Map<String, Point> {
         val points = LinkedHashMap<String, Point>()

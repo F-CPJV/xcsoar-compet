@@ -53,6 +53,8 @@ class LiveSurveyTest {
         val missingPoints = ArrayList<String>()
         val noRules = ArrayList<String>()
         val airspaceMisses = ArrayList<String>()
+        val gasFailures = ArrayList<String>()
+        var gasUsed = 0
 
         line("| compétition | classe | task | type | pts | circuit | règles | espaces inactifs |")
         line("|---|---|---|---|---|---|---|---|")
@@ -103,19 +105,31 @@ class LiveSurveyTest {
                 ).joinToString("").ifEmpty { "—" }
                 if (rulesFound == "—") noRules.add("$slug/${ref.cls}")
 
-                var taskState = "—"
-                if (waypoints != null) {
-                    val missing = parsed.points.map { it.name }.filter { !waypoints.containsKey(it) }
-                    if (missing.isEmpty()) {
-                        TaskXml.build(parsed, waypoints, rules)
-                        built++
-                        taskState = "✔"
-                    } else {
-                        taskState = "❌ ${missing.size} pt(s) absents"
-                        missingPoints.add("$slug/${ref.cls}: ${missing.take(3)}")
+                var taskState: String
+                var points = waypoints ?: emptyMap()
+                var missing = parsed.points.map { it.name }.filter { !points.containsKey(it) }
+                var viaGas = false
+                if (missing.isNotEmpty()) {
+                    // même repli que l'appli
+                    try {
+                        val gas = GlideAndSeek.waypoints(slug, ref)
+                        if (gas.isNotEmpty()) {
+                            points = gas + points
+                            viaGas = true
+                            missing = parsed.points.map { it.name }.filter { !points.containsKey(it) }
+                        }
+                    } catch (e: Exception) {
+                        gasFailures.add("$slug/${ref.cls}: ${e.message}")
                     }
+                }
+                if (missing.isEmpty() && points.isNotEmpty()) {
+                    TaskXml.build(parsed, points, rules)
+                    built++
+                    taskState = if (viaGas) "✔ (GlideAndSeek)" else "✔"
+                    if (viaGas) gasUsed++
                 } else {
-                    taskState = "pas de .cup"
+                    taskState = "❌ ${missing.size} pt(s) absents"
+                    missingPoints.add("$slug/${ref.cls}: ${missing.take(3)}")
                 }
 
                 var asState = "—"
@@ -143,6 +157,7 @@ class LiveSurveyTest {
         line("")
         line("## Synthèse")
         line("- tasks analysées : $tasks, circuits générés : $built, dont AAT : $aat")
+        line("- circuits résolus grâce au repli GlideAndSeek : $gasUsed ; échecs du repli : ${gasFailures.size} ${gasFailures.take(4)}")
         line("- compétitions sans fichier de points de virage : ${noWaypointFile.size} ${noWaypointFile}")
         line("- compétitions sans fichier d'espaces : ${noAirspaceFile.size} ${noAirspaceFile}")
         line("- règles du jour non trouvées : ${noRules.size} ${noRules.take(8)}")

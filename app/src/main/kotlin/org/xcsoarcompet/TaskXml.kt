@@ -23,14 +23,41 @@ object TaskXml {
         val startMaxHeight: Int? = null,     // m MSL
     )
 
+    // Les organisateurs rédigent leurs notes en clair, dans leur langue et sans
+    // format imposé. On travaille donc ligne à ligne par mots-clés plutôt
+    // qu'avec une expression rationnelle par tournure : français, anglais et
+    // allemand, les trois langues les plus courantes en compétition.
+    private val START = listOf("départ", "depart", "start", "abflug")
+    private val FINISH = listOf("arrivée", "arrivee", "finish", "arrival", "ziel", "ankunft")
+    private val SPEED = listOf("vitesse", "speed", "geschwindigkeit")
+    private val HEIGHT = listOf("altitude", "hauteur", "height", "höhe", "hohe")
+    private val MAX = listOf("max", "höchst", "hochst")
+    private val MIN = listOf("min", "mindest")
+
+    private val KMH = Regex("""(\d{2,3})\s*km/h""")
+    private val METRES = Regex("""(\d{3,4})\s*m\b""")
+
     /** Règles chiffrées extraites des « task notes ». */
     fun parseRules(notes: String): Rules {
-        val speed = Regex("""[Vv]itesse max.*?d[ée]part\D*?(\d{2,3})\s*km/h""")
-            .find(notes)?.groupValues?.get(1)?.toIntOrNull()
-        val finish = Regex("""[Aa]ltitude min.*?arriv[ée]e\D*?(\d{3,4})\s*m""")
-            .find(notes)?.groupValues?.get(1)?.toIntOrNull()
-        val start = Regex("""[Aa]ltitude max.*?d[ée]part\D*?(\d{3,4})\s*m""")
-            .find(notes)?.groupValues?.get(1)?.toIntOrNull()
+        var speed: Int? = null
+        var finish: Int? = null
+        var start: Int? = null
+
+        for (raw in notes.lineSequence()) {
+            val l = raw.lowercase()
+            val hasStart = START.any { l.contains(it) }
+            val hasFinish = FINISH.any { l.contains(it) }
+            val hasMax = MAX.any { l.contains(it) }
+            val hasMin = MIN.any { l.contains(it) }
+            val hasHeight = HEIGHT.any { l.contains(it) }
+
+            if (speed == null && hasStart && SPEED.any { l.contains(it) })
+                speed = KMH.find(l)?.groupValues?.get(1)?.toIntOrNull()
+            if (finish == null && hasFinish && hasMin && hasHeight)
+                finish = METRES.find(l)?.groupValues?.get(1)?.toIntOrNull()
+            if (start == null && hasStart && hasMax && hasHeight && !hasFinish)
+                start = METRES.find(l)?.groupValues?.get(1)?.toIntOrNull()
+        }
         return Rules(speed?.let { it / 3.6 }, finish, start)
     }
 

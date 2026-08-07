@@ -169,10 +169,19 @@ object SoaringSpot {
             .toList()
     }
 
-    /** Fichier de points de virage : le .cup « générique » (sans suffixe constructeur). */
+    /**
+     * Fichier de points de virage.
+     *
+     * Les variantes constructeur (LX, ILEC, Garmin, Volkslogger, WinPilot,
+     * Zander) portent d'autres extensions : filtrer sur « .cup » suffit. Surtout
+     * ne pas écarter les noms contenant un tiret bas — beaucoup d'organisateurs
+     * en mettent (`LDBCM_20260705.cup`, `JWGC_TP_v2.cup`), et les exclure
+     * faisait passer cinq compétitions sur quatorze pour dépourvues de fichier.
+     * S'il y en a plusieurs, le dernier par ordre alphabétique retient en
+     * général la version la plus récente (`_v1` < `_v2`).
+     */
     fun waypointFile(files: List<ContestFile>): ContestFile? =
-        files.filter { it.name.endsWith(".cup", true) && !it.name.contains('_') }
-            .maxByOrNull { it.name }
+        files.filter { it.name.endsWith(".cup", true) }.maxByOrNull { it.name }
 
     /** Fichier d'espaces aériens OpenAir (.txt) ; le .cub est réservé aux Oudie. */
     fun airspaceFile(files: List<ContestFile>): ContestFile? =
