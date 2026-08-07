@@ -17,7 +17,8 @@ import java.io.File
 object XCSoarTarget {
 
     /** Page expliquant le cas « XCSoar ne lit pas Android/media ». */
-    const val STORAGE_HELP_URL = "https://github.com/pjv/xcsoar-compet/wiki/Stockage"
+    const val STORAGE_HELP_URL =
+        "https://github.com/F-CPJV/xcsoar-compet/wiki/Stockage"
 
     private val MEDIA_ROOT = File("/storage/emulated/0/Android/media")
 
